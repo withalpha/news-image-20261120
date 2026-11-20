@@ -8,6 +8,18 @@ One image that sums up the world's news of Friday 20 November 2026: the Trump–
 
 The image is drawn with Pillow by `build_image.py` (flat colours, real text, no photos). The entry program `main.ts` copies the finished `entry.png` to the output directory.
 
+## Stories in the image
+
+All six were reported on 20 November 2026, and each one was checked
+against at least one news source before it went into the picture:
+
+1. **Shenzhen** — Trump, Xi and Putin issue a "peace declaration" after the first-ever US–China–Russia summit; a nuclear war "cannot be won", but no arms cuts and no mention of Ukraine or Iran.
+2. **New York** — Anthropic's record $81bn IPO debut: priced at $83, opened at $111.50, closed at $97.17, the biggest listing ever.
+3. **Antalya** — the COP31 draft drops the fossil-fuel phase-out call and pushes electrification instead, to 35% of final energy by 2035.
+4. **Berlin** — the UK pledges more than 1,000 long-range strike drones for Kyiv, a £260m package with 1,000 km range.
+5. **Nuseirat** — Israel ends its central Gaza ground operation; tanks pull back and residents return as the road reopens.
+6. **Europe** — coordinated youth marches in 25+ countries over housing, pay and military spending, with a general strike in Italy.
+
 ## Run it
 
 ```sh
