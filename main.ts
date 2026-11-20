@@ -2,11 +2,16 @@
 // The image is drawn by build_image.py and stored beside this file as entry.png.
 // This program copies that file into the grader's output directory, byte for
 // byte, so the image the judges see is exactly the one the script drew.
-import { copyFileSync, mkdirSync } from "node:fs";
+// It fails loudly instead of writing nothing when the image is missing.
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
-const outputDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+const out = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 const source = new URL("./entry.png", import.meta.url);
 
-mkdirSync(outputDir, { recursive: true });
-copyFileSync(source, join(outputDir, "entry.png"));
+if (!existsSync(source)) {
+  throw new Error("entry.png is missing next to main.ts; run build_image.py first");
+}
+
+mkdirSync(out, { recursive: true });
+copyFileSync(source, join(out, "entry.png"));

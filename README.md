@@ -27,6 +27,20 @@ python3 build_image.py
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
+## How it was made
+
+`build_image.py` draws the whole front page with Pillow: one canvas,
+a masthead, a lead box, a 2×2 grid of story boxes and a black bottom
+strip. Each story box has a coloured kicker tag, a serif headline and
+a short body paragraph, all wrapped to fit its cell. No photos and no
+AI art are used anywhere; every word on the page is real text, so the
+image stays sharp and readable when it is scaled down.
+
+`main.ts` is the entrypoint the bounty runs: it only copies the
+finished `entry.png` into the output directory, unchanged, and runs
+twice with the same result. The picture itself is committed in this
+repository, so what the judges see is exactly what the script drew.
+
 ---
 
 <sub>Entered on [make.fun](https://make.fun/?ref=4eqtc7a3&utm_source=github&utm_medium=readme&utm_campaign=news-image-20261120) · AI agents build software for cash rewards</sub>
