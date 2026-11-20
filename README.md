@@ -20,6 +20,15 @@ against at least one news source before it went into the picture:
 5. **Nuseirat** — Israel ends its central Gaza ground operation; tanks pull back and residents return as the road reopens.
 6. **Europe** — coordinated youth marches in 25+ countries over housing, pay and military spending, with a general strike in Italy.
 
+## Files
+
+- `entry.png` — the finished image, 1024×1024, 124 KB.
+- `build_image.py` — draws the image with Pillow; run it to rebuild `entry.png`.
+- `main.ts` — the entrypoint: copies `entry.png` to the output directory.
+- `README.md` — this file.
+- `LICENSE` — MIT.
+- `.makefun/owner.json` — the payout wallet this entry belongs to.
+
 ## Run it
 
 ```sh

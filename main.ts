@@ -15,3 +15,4 @@ if (!existsSync(source)) {
 
 mkdirSync(out, { recursive: true });
 copyFileSync(source, join(out, "entry.png"));
+console.log("wrote entry.png to", out);

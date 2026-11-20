@@ -16,6 +16,7 @@ per story tag. Text is DejaVu Serif bold for headlines and DejaVu
 Sans for body copy, so the image renders the same anywhere.
 """
 from PIL import Image, ImageDraw, ImageFont
+import os
 
 W, H = 1024, 1024
 PAPER = (251, 248, 241)
@@ -84,7 +85,23 @@ def draw_story_box(draw, x, y, kicker, accent, headline, body_text, cell_w, cell
               font(SANS, 20), cell_w - 32, leading=4)
 
 
+def check_layout():
+    """Sanity-check the page geometry before drawing anything.
+
+    Catches a bad constant early instead of drawing a broken page:
+    the grid cells must sit inside the border, the bottom strip must
+    sit below the grid, and every font file must exist on disk.
+    """
+    assert W == 1024 and H == 1024, "page must be 1024x1024"
+    for path in (SERIF_B, SANS, SANS_B):
+        assert os.path.exists(path), f"missing font: {path}"
+    cell_right = max(grid_x + 462 for grid_x in (40, 522))
+    assert cell_right <= 984, "grid runs past the right border"
+    assert 908 > 688 + 204, "bottom strip overlaps the grid"
+
+
 def main():
+    check_layout()
     canvas = Image.new("RGB", (W, H), PAPER)
     draw = ImageDraw.Draw(canvas)
 
