@@ -6,6 +6,7 @@ each one happened, or was first reported, on Friday 20 November 2026 in at
 least one time zone. Stories first reported on 18-19 Nov are excluded on
 purpose and named in the DATE CHECK box instead.
 """
+import math
 import os
 from PIL import Image, ImageDraw, ImageFont
 
@@ -236,82 +237,126 @@ PINS = {
 
 # ------------------------------------------------------------ small illustrations
 def art_cyclone(d, x, y, w, h):
-    d.rectangle([x, y, x + w, y + h], fill=(28, 68, 86))
-    d.rectangle([x, y + h - 26, x + w, y + h], fill=(232, 214, 170))
-    d.text((x + 8, y + h - 22), "BAY OF BENGAL", font=font(SANS_B, 10),
-           fill=(60, 50, 30))
-    cx, cy = x + w // 2, y + h // 2 - 6
-    for r, col in ((32, WHITE), (24, (200, 220, 230)), (15, WHITE)):
-        d.arc([cx - r, cy - r, cx + r, cy + r], 20, 300, fill=col, width=4)
-    d.ellipse([cx - 5, cy - 5, cx + 5, cy + 5], fill=RED)
-    d.text((x + 8, y + 6), "GOPALPUR", font=font(SANS_B, 10), fill=WHITE)
+    d.rectangle([x, y, x + w, y + h], fill=(18, 52, 74))
+    # coastline: pale land on the left, sea on the right
+    d.polygon([(x, y), (x + 92, y), (x + 74, y + h - 20), (x, y + h - 20)],
+              fill=(232, 214, 170))
+    d.polygon([(x, y + h - 20), (x + 74, y + h - 20), (x + 92, y),
+               (x + w, y), (x + w, y + h - 20)], fill=(28, 68, 86))
+    d.text((x + 8, y + 6), "GOPALPUR", font=font(SANS_B, 11), fill=(60, 50, 30))
     d.text((x + w - 118, y + 6), "GUSTS 90 KM/H", font=font(SANS_B, 10),
            fill=(255, 210, 120))
+    cx, cy = x + w // 2 - 20, y + 30
+    for r, col, wd in ((30, (255, 255, 255), 4), (23, (190, 215, 225), 3),
+                       (16, (255, 255, 255), 3), (10, (255, 210, 120), 3)):
+        d.arc([cx - r, cy - r, cx + r, cy + r], 20, 300, fill=col, width=wd)
+    d.ellipse([cx - 6, cy - 6, cx + 6, cy + 6], fill=RED)
+    d.ellipse([cx - 2, cy - 2, cx + 2, cy + 2], fill=WHITE)
+    d.text((x + 8, y + h - 40), "BAY OF BENGAL", font=font(SANS_B, 10),
+           fill=(255, 210, 120))
+    # bold landfall banner across the bottom
+    d.rectangle([x, y + h - 20, x + w, y + h], fill=RED)
+    d.text((x + 10, y + h - 17), "LANDFALL  \u2022  300,000+ EVACUATED",
+           font=font(SANS_B, 11), fill=WHITE)
 
 
 def art_kyiv(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(16, 26, 40))
     for sx, sy in ((12, 14), (40, 8), (70, 18), (110, 10), (150, 16),
-                   (190, 8), (230, 14), (270, 10)):
+                   (190, 8), (230, 14), (270, 10), (300, 16)):
         d.ellipse([x + sx, y + sy, x + sx + 2, y + sy + 2], fill=WHITE)
-    base = y + h
-    for bx, bw, bh in ((0, 34, 34), (38, 26, 48), (68, 30, 28), (102, 24, 42),
-                       (130, 34, 30), (168, 26, 50), (198, 30, 34),
-                       (232, 28, 44), (264, 30, 28)):
-        d.rectangle([x + bx, base - bh, x + bx + bw, base], fill=(8, 14, 22))
-    for x0, x1, peak in ((10, 120, 34), (90, 210, 30), (170, 290, 32)):
-        d.arc([x + x0, y + peak - 22, x + x1, y + peak + 40], 200, 340,
+    # missile arcs with glowing warheads
+    for x0, x1, peak in ((8, 110, 26), (70, 190, 22), (140, 250, 26),
+                         (200, 300, 22), (250, 316, 30)):
+        d.arc([x + x0, y + peak - 18, x + x1, y + peak + 34], 200, 340,
               fill=(255, 150, 60), width=3)
-        d.ellipse([x + x1 - 4, y + peak + 8, x + x1 + 2, y + peak + 14],
+        d.ellipse([x + x1 - 4, y + peak + 4, x + x1 + 3, y + peak + 11],
                   fill=(255, 200, 90))
-    d.text((x + 8, y + h - 20), "01:25 LOCAL", font=font(SANS_B, 10),
-           fill=(255, 210, 120))
+    # skyline with lit windows and fire glows
+    base = y + h - 20
+    for bx, bw, bh in ((0, 34, 30), (38, 26, 42), (68, 30, 24), (102, 24, 38),
+                       (130, 34, 26), (168, 26, 44), (198, 30, 30),
+                       (232, 28, 40), (264, 30, 24), (298, 19, 34)):
+        d.rectangle([x + bx, base - bh, x + bx + bw, base], fill=(8, 14, 22))
+        for wy in range(base - bh + 6, base - 4, 10):
+            d.rectangle([x + bx + 5, wy, x + bx + 9, wy + 4],
+                        fill=(255, 200, 90))
+    for fx, fr in ((52, 9), (182, 11), (246, 8)):
+        d.ellipse([x + fx - fr, base - fr - 6, x + fx + fr, base + 2],
+                  fill=(255, 120, 40))
+        d.ellipse([x + fx - fr // 2, base - fr // 2 - 4,
+                   x + fx + fr // 2, base + 2], fill=(255, 200, 90))
+    # bold banner across the bottom
+    d.rectangle([x, y + h - 20, x + w, y + h], fill=(158, 27, 27))
+    d.text((x + 10, y + h - 17), "KYIV  \u2022  01:25 LOCAL  \u2022  ~400 DRONES",
+           font=font(SANS_B, 11), fill=WHITE)
 
 
 def art_cop(d, x, y, w, h):
-    d.rectangle([x, y, x + w, y + h], fill=(28, 68, 86))
-    cx, cy, r = x + 52, y + h // 2, 30
+    d.rectangle([x, y, x + w, y + h], fill=(18, 52, 74))
+    # big globe, left
+    cx, cy, r = x + 58, y + 34, 32
     d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(90, 160, 170),
               outline=WHITE, width=2)
     d.arc([cx - r, cy - r, cx + r, cy + r], 300, 60, fill=WHITE, width=2)
     d.arc([cx - r, cy - r, cx + r, cy + r], 120, 240, fill=WHITE, width=2)
-    tx = x + 108
-    d.rounded_rectangle([tx, y + 12, tx + 16, y + h - 12], radius=8,
+    d.ellipse([cx - 12, cy - 16, cx + 2, cy - 2], fill=(60, 130, 110))
+    d.ellipse([cx + 4, cy + 6, cx + 18, cy + 18], fill=(60, 130, 110))
+    # thermometer, middle
+    tx = x + 128
+    d.rounded_rectangle([tx, y + 8, tx + 18, y + h - 28], radius=9,
                         fill=WHITE, outline=RED, width=2)
-    d.ellipse([tx - 3, y + h - 30, tx + 19, y + h - 8], fill=RED)
-    d.rectangle([tx + 6, y + 18, tx + 10, y + h - 22], fill=RED)
-    d.rectangle([x + w - 118, y + 8, x + w - 8, y + 34], fill=RED)
-    d.text((x + w - 110, y + 12), "FINAL DAY", font=font(SANS_B, 12),
+    d.ellipse([tx - 4, y + h - 46, tx + 22, y + h - 20], fill=RED)
+    d.rectangle([tx + 7, y + 14, tx + 11, y + h - 34], fill=RED)
+    for my in (y + 16, y + 28, y + 40):
+        d.line([tx + 18, my, tx + 26, my], fill=WHITE, width=2)
+    # FINAL DAY badge, right
+    d.rectangle([x + w - 128, y + 8, x + w - 8, y + 36], fill=RED)
+    d.text((x + w - 120, y + 12), "FINAL DAY", font=font(SANS_B, 13),
            fill=WHITE)
-    d.text((x + w - 118, y + h - 22), "COP31", font=font(SANS_B, 12),
+    d.text((x + w - 120, y + 38), "DEADLOCK", font=font(SANS_B, 13),
+           fill=(255, 210, 120))
+    d.text((x + w - 120, y + 56), "COP31", font=font(SANS_B, 12),
            fill=WHITE)
 
 
 def art_markets(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(248, 244, 233))
     d.rectangle([x, y, x + w, y + h], outline=RULE, width=1)
-    pts = [(x + 10, y + 8), (x + 50, y + 14), (x + 90, y + 12),
-           (x + 130, y + 20), (x + 170, y + 19), (x + 210, y + 24),
-           (x + 250, y + 26)]
+    # faint gridlines
+    for gy in (y + 12, y + 24, y + 36):
+        d.line([x + 6, gy, x + w - 6, gy], fill=(225, 220, 205), width=1)
+    pts = [(x + 10, y + 10), (x + 50, y + 16), (x + 90, y + 13),
+           (x + 130, y + 22), (x + 170, y + 21), (x + 210, y + 27),
+           (x + 250, y + 29)]
     d.line(pts, fill=RED, width=3)
     d.polygon(pts + [(x + 250, y + h - 4), (x + 10, y + h - 4)],
               fill=(158, 27, 27, 40))
-    d.text((x + 8, y + h - 20), "NIKKEI \u22125.1%", font=font(SANS_B, 11),
+    d.ellipse([x + 244, y + 23, x + 256, y + 35], fill=RED)
+    d.text((x + 8, y + h - 18), "NIKKEI \u22125.1%", font=font(SANS_B, 11),
+           fill=RED)
+    d.text((x + w - 52, y + 4), "\u22128.5%", font=font(SANS_B, 11),
            fill=RED)
 
 
 def art_bepi(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(16, 26, 40))
     for sx, sy in ((14, 12), (46, 20), (90, 10), (150, 16), (200, 12),
-                   (250, 18), (280, 10)):
+                   (250, 18), (280, 10), (120, 26), (230, 28)):
         d.ellipse([x + sx, y + sy, x + sx + 2, y + sy + 2], fill=WHITE)
-    d.ellipse([x + w - 64, y + 4, x + w - 34, y + 34], fill=(200, 190, 170))
-    d.ellipse([x + w - 56, y + 12, x + w - 48, y + 20], fill=(170, 158, 140))
-    d.ellipse([x + w - 46, y + 22, x + w - 40, y + 28], fill=(170, 158, 140))
-    d.line([x + 24, y + h - 8, x + w - 52, y + 22], fill=(255, 200, 90),
+    # Mercury, big
+    d.ellipse([x + w - 66, y + 4, x + w - 30, y + 40], fill=(200, 190, 170))
+    d.ellipse([x + w - 58, y + 12, x + w - 50, y + 20], fill=(170, 158, 140))
+    d.ellipse([x + w - 48, y + 24, x + w - 42, y + 30], fill=(170, 158, 140))
+    # probe on a dotted trajectory to Mercury
+    for i in range(6):
+        px = x + 30 + i * 34
+        py = y + h - 12 - i * 4
+        d.ellipse([px - 2, py - 2, px + 2, py + 2], fill=(255, 200, 90))
+    d.line([x + 24, y + h - 10, x + w - 54, y + 24], fill=(255, 200, 90),
            width=2)
-    d.rectangle([x + 16, y + h - 20, x + 40, y + h - 6], fill=(230, 220, 200))
-    d.polygon([(x + 40, y + h - 18), (x + 56, y + h - 12), (x + 40, y + h - 6)],
+    d.rectangle([x + 16, y + h - 24, x + 42, y + h - 8], fill=(230, 220, 200))
+    d.polygon([(x + 42, y + h - 22), (x + 60, y + h - 16), (x + 42, y + h - 10)],
               fill=(255, 200, 90))
     d.text((x + 8, y + 6), "6BN MILES", font=font(SANS_B, 10), fill=WHITE)
 
@@ -319,18 +364,29 @@ def art_bepi(d, x, y, w, h):
 def art_summit(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(248, 244, 233))
     d.rectangle([x, y, x + w, y + h], outline=RULE, width=1)
-    d.rectangle([x + 12, y + 10, x + w // 2 - 4, y + h - 10], fill=(0, 51, 153))
-    for sx, sy in ((28, 22), (44, 16), (58, 26), (36, 38), (52, 42)):
-        d.ellipse([x + sx, y + sy, x + sx + 4, y + sy + 4], fill=(255, 204, 0))
-    d.rectangle([x + w // 2 + 4, y + 10, x + w - 12, y + h - 10],
-                fill=(200, 16, 46))
-    d.line([x + w // 2 + 4, y + h // 2, x + w - 12, y + h // 2], fill=WHITE,
-           width=5)
-    d.line([(x + w // 2 + 4 + (w // 2 - 16) // 2), y + 10,
-            (x + w // 2 + 4 + (w // 2 - 16) // 2), y + h - 10], fill=WHITE,
-           width=5)
-    d.text((x + 12, y + h - 20), "EU", font=font(SANS_B, 11), fill=WHITE)
-    d.text((x + w - 30, y + h - 20), "UK", font=font(SANS_B, 11),
+    # EU flag: blue with a ring of gold stars
+    d.rectangle([x + 10, y + 8, x + w // 2 - 4, y + h - 8], fill=(0, 51, 153))
+    cx, cy = x + (10 + w // 2 - 4) // 2, y + (8 + h - 8) // 2
+    for k in range(12):
+        a = math.pi * 2 * k / 12 - math.pi / 2
+        sx, sy = cx + 15 * math.cos(a), cy + 11 * math.sin(a)
+        d.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill=(255, 204, 0))
+    # UK flag: blue field, white saltire, red cross
+    ux0, uy0 = x + w // 2 + 4, y + 8
+    ux1, uy1 = x + w - 10, y + h - 8
+    d.rectangle([ux0, uy0, ux1, uy1], fill=(0, 36, 125))
+    d.line([ux0, uy0, ux1, uy1], fill=WHITE, width=5)
+    d.line([ux1, uy0, ux0, uy1], fill=WHITE, width=5)
+    d.line([(ux0 + ux1) // 2, uy0, (ux0 + ux1) // 2, uy1], fill=WHITE,
+           width=7)
+    d.line([ux0, (uy0 + uy1) // 2, ux1, (uy0 + uy1) // 2], fill=WHITE,
+           width=7)
+    d.line([(ux0 + ux1) // 2, uy0, (ux0 + ux1) // 2, uy1], fill=(200, 16, 46),
+           width=3)
+    d.line([ux0, (uy0 + uy1) // 2, ux1, (uy0 + uy1) // 2], fill=(200, 16, 46),
+           width=3)
+    d.text((x + 12, y + h - 18), "EU", font=font(SANS_B, 11), fill=WHITE)
+    d.text((x + w - 30, y + h - 18), "UK", font=font(SANS_B, 11),
            fill=WHITE)
 
 
@@ -338,91 +394,112 @@ def art_cpi(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(248, 244, 233))
     d.rectangle([x, y, x + w, y + h], outline=RULE, width=1)
     base = y + h - 8
-    vals = [("2.1", 18, MUTED), ("2.3", 20, RED), ("2.2", 19, TEAL)]
-    bx = x + 22
+    vals = [("2.1", 20, MUTED), ("2.3", 24, RED), ("2.2", 22, TEAL)]
+    bx = x + 20
     for label, vh, col in vals:
-        d.rectangle([bx, base - vh, bx + 34, base], fill=col)
-        d.text((bx + 2, base - vh - 14), label, font=font(SANS_B, 10),
+        d.rectangle([bx, base - vh, bx + 38, base], fill=col)
+        d.text((bx + 4, base - vh - 15), label, font=font(SANS_B, 11),
                fill=INK)
-        bx += 52
+        bx += 56
     d.line([x + 10, base, x + w - 10, base], fill=INK, width=1)
 
 
 def art_lpr(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(248, 244, 233))
     d.rectangle([x, y, x + w, y + h], outline=RULE, width=1)
-    d.line([x + 12, y + 14, x + w - 12, y + 14], fill=RED, width=3)
-    d.line([x + 12, y + 28, x + w - 12, y + 28], fill=TEAL, width=3)
-    d.text((x + 12, y + 3), "3.50% 5Y", font=font(SANS_B, 11), fill=RED)
-    d.text((x + 12, y + 17), "3.00% 1Y", font=font(SANS_B, 11), fill=TEAL)
+    d.text((x + 12, y + 4), "3.50%  5Y", font=font(SANS_B, 12), fill=RED)
+    d.line([x + 12, y + 20, x + w - 12, y + 20], fill=RED, width=4)
+    d.text((x + 12, y + 26), "3.00%  1Y", font=font(SANS_B, 12), fill=TEAL)
+    d.line([x + 12, y + 42, x + w - 12, y + 42], fill=TEAL, width=4)
+    d.ellipse([x + w - 22, y + 14, x + w - 10, y + 26], fill=RED)
+    d.ellipse([x + w - 22, y + 36, x + w - 10, y + 48], fill=TEAL)
 
 
 def art_cricket(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(34, 100, 60))
-    d.rectangle([x + 14, y + h - 20, x + w - 14, y + h - 6], fill=(210, 190, 140))
-    for sx in (46, 56, 66):
-        d.line([x + sx, y + 4, x + sx, y + h - 20], fill=(240, 220, 150),
+    # pitch strip
+    d.rectangle([x + 10, y + h - 22, x + w - 10, y + h - 6], fill=(210, 190, 140))
+    # stumps
+    for sx in (44, 56, 68):
+        d.line([x + sx, y + 6, x + sx, y + h - 22], fill=(240, 220, 150),
                width=3)
-    d.line([x + 46, y + 2, x + 66, y + 2], fill=(240, 220, 150),
-           width=3)
-    d.line([x + 118, y + 6, x + 138, y + h - 22], fill=(210, 180, 120),
-           width=7)
-    d.ellipse([x + w - 46, y + 12, x + w - 30, y + 28], fill=RED)
-    d.text((x + 8, y + 6), "118 \u2022 RECORD", font=font(SANS_B, 11),
-           fill=WHITE)
+    d.line([x + 44, y + 4, x + 68, y + 4], fill=(240, 220, 150), width=3)
+    # bat, mid-swing, right of the headline
+    d.line([x + 140, y + 16, x + 152, y + h - 24], fill=(210, 180, 120),
+           width=8)
+    # red ball flying, top right
+    d.ellipse([x + w - 32, y + 10, x + w - 14, y + 28], fill=RED)
+    d.ellipse([x + w - 28, y + 14, x + w - 22, y + 20], fill=(255, 120, 120))
+    d.text((x + 8, y + 6), "118", font=font(SANS_B, 16), fill=WHITE)
+    d.text((x + 52, y + 10), "\u2022 RECORD", font=font(SANS_B, 11),
+           fill=(255, 210, 120))
 
 
 def art_strike(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(248, 244, 233))
     d.rectangle([x, y, x + w, y + h], outline=RULE, width=1)
+    # Italian flag, left
     d.rectangle([x + 10, y + 8, x + 40, y + h - 8], fill=(0, 146, 70))
     d.rectangle([x + 40, y + 8, x + 70, y + h - 8], fill=WHITE)
     d.rectangle([x + 70, y + 8, x + 100, y + h - 8], fill=(205, 0, 42))
-    for hx in range(112, w - 8, 18):
-        d.ellipse([x + hx, y + h - 22, x + hx + 10, y + h - 12], fill=INK)
-        d.polygon([(x + hx - 2, y + h - 6), (x + hx + 12, y + h - 6),
-                   (x + hx + 5, y + h - 12)], fill=INK)
+    # crowd of heads, right
+    for hx in range(112, w - 8, 20):
+        d.ellipse([x + hx, y + h - 26, x + hx + 11, y + h - 15], fill=INK)
+        d.polygon([(x + hx - 2, y + h - 8), (x + hx + 13, y + h - 8),
+                   (x + hx + 5, y + h - 16)], fill=INK)
     d.text((x + 112, y + 8), "100 SQUARES", font=font(SANS_B, 11), fill=RED)
+    d.text((x + 112, y + 24), "ROME \u2022 24 HR", font=font(SANS_B, 10),
+           fill=MUTED)
 
 
 def art_pill(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(248, 244, 233))
     d.rectangle([x, y, x + w, y + h], outline=RULE, width=1)
-    cx, cy = x + w - 52, y + h // 2
+    # target, right
+    cx, cy = x + w - 52, y + 24
     for r, col in ((18, RED), (12, WHITE), (7, RED)):
         d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=col, width=3)
     d.ellipse([cx - 3, cy - 3, cx + 3, cy + 3], fill=RED)
-    d.rounded_rectangle([x + 12, y + h // 2 - 10, x + 76, y + h // 2 + 10],
-                        radius=10, fill=(240, 120, 60))
-    d.rounded_rectangle([x + 12, y + h // 2 - 10, x + 44, y + h // 2 + 10],
-                        radius=10, fill=(250, 210, 90))
-    d.text((x + 12, y + 6), "60.7% RESPONSE", font=font(SANS_B, 11), fill=RED)
+    # capsule, bottom left
+    d.rounded_rectangle([x + 12, y + h - 16, x + 78, y + h - 2],
+                        radius=7, fill=(240, 120, 60))
+    d.rounded_rectangle([x + 12, y + h - 16, x + 45, y + h - 2],
+                        radius=7, fill=(250, 210, 90))
+    d.text((x + 12, y + 4), "60.7%", font=font(SANS_B, 16), fill=RED)
+    d.text((x + 12, y + 22), "RESPONSE", font=font(SANS_B, 11), fill=RED)
 
 
 def art_youth(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(22, 34, 46))
+    # crowd along the bottom
     for hx in range(12, w - 8, 20):
-        d.ellipse([x + hx, y + h - 36, x + hx + 11, y + h - 25], fill=WHITE)
+        d.ellipse([x + hx, y + h - 34, x + hx + 11, y + h - 23], fill=WHITE)
         d.polygon([(x + hx - 2, y + h - 8), (x + hx + 13, y + h - 8),
-                   (x + hx + 5, y + h - 26)], fill=WHITE)
-    for px, label in ((16, "PAY"), (76, "HOMES"), (136, "FUTURE")):
-        d.line([x + px + 12, y + 12, x + px + 12, y + 34], fill=WHITE, width=2)
-        d.rectangle([x + px, y + 12, x + px + 46, y + 28], fill=RED)
-        d.text((x + px + 4, y + 15), label, font=font(SANS_B, 9), fill=WHITE)
+                   (x + hx + 5, y + h - 24)], fill=WHITE)
+    # placards
+    for px, label in ((14, "PAY"), (74, "HOMES"), (134, "FUTURE")):
+        d.line([x + px + 22, y + 12, x + px + 22, y + 30], fill=WHITE,
+               width=2)
+        d.rectangle([x + px, y + 8, x + px + 44, y + 26], fill=RED)
+        d.text((x + px + 4, y + 12), label, font=font(SANS_B, 9), fill=WHITE)
 
 
 def art_sub(d, x, y, w, h):
-    d.rectangle([x, y, x + w, y + h], fill=(28, 68, 86))
-    for wy in (h - 8, h - 4):
+    d.rectangle([x, y, x + w, y + h], fill=(18, 52, 74))
+    # sea waves
+    for wy in (h - 10, h - 5):
         d.line([x + 8, y + wy, x + w - 8, y + wy], fill=(140, 190, 200),
                width=2)
-    d.rounded_rectangle([x + 30, y + 12, x + w - 30, y + 28], radius=8,
+    # submarine, bigger
+    d.rounded_rectangle([x + 28, y + 12, x + w - 28, y + 30], radius=9,
                         fill=(40, 50, 60))
-    d.rectangle([x + w // 2 - 8, y + 6, x + w // 2 + 8, y + 14],
+    d.rectangle([x + w // 2 - 8, y + 4, x + w // 2 + 8, y + 14],
                 fill=(40, 50, 60))
-    d.ellipse([x + w - 52, y + 16, x + w - 44, y + 24],
+    d.ellipse([x + w - 56, y + 16, x + w - 46, y + 26],
               fill=(255, 210, 120))
-    d.text((x + 8, y + 2), "3\u20135 BOATS", font=font(SANS_B, 9), fill=WHITE)
+    for px in (60, 90, 120):
+        d.ellipse([x + px, y + 18, x + px + 6, y + 24], fill=(140, 190, 200))
+    d.text((x + 8, y + 32), "3\u20135 BOATS", font=font(SANS_B, 10), fill=WHITE)
 
 
 ART = {
@@ -446,14 +523,14 @@ def draw_map(d, x, y, w, h):
                 land.add((c, r))
     for (c, r) in land:
         cx, cy = x + (c + 0.5) * sx, y + (r + 0.5) * sy
-        d.ellipse([cx - 2, cy - 2, cx + 2, cy + 2], fill=(150, 170, 185))
+        d.ellipse([cx - 3, cy - 3, cx + 3, cy + 3], fill=(150, 170, 185))
     for num, (c, r) in sorted(PINS.items()):
         cx, cy = x + (c + 0.5) * sx, y + (r + 0.5) * sy
-        d.ellipse([cx - 7, cy - 7, cx + 7, cy + 7], fill=RED,
-                  outline=WHITE, width=1)
+        d.ellipse([cx - 9, cy - 9, cx + 9, cy + 9], fill=RED,
+                  outline=WHITE, width=2)
         t = str(num)
-        tw = d.textlength(t, font=font(SANS_B, 9))
-        d.text((cx - tw / 2, cy - 6), t, font=font(SANS_B, 9), fill=WHITE)
+        tw = d.textlength(t, font=font(SANS_B, 10))
+        d.text((cx - tw / 2, cy - 7), t, font=font(SANS_B, 10), fill=WHITE)
     d.rectangle([x + 6, y + h - 26, x + 118, y + h - 6], fill=RED)
     d.text((x + 12, y + h - 23), "5 \u2022 SPACE Mercury",
            font=font(SANS_B, 11), fill=WHITE)
@@ -509,23 +586,23 @@ def draw_chips(d, y):
 
 def draw_lead(d, x, y, w, story):
     num, place, field, head, body, source, art = story
-    ART[art](d, x, y, w, 76)
+    ART[art](d, x, y, w, 84)
     tag = "%02d \u2022 %s \u2022 %s" % (num, place, field)
-    d.text((x, y + 82), tag, font=font(SANS_B, 11), fill=RED)
-    draw_para(d, x, y + 96, head, font(SERIF_B, 17), w, leading=20)
-    draw_para(d, x, y + 140, body, font(SANS, 12), w, leading=14)
-    d.text((x, y + 184), "(%s)" % source, font=font(SANS, 10), fill=MUTED)
+    d.text((x, y + 90), tag, font=font(SANS_B, 11), fill=RED)
+    draw_para(d, x, y + 104, head, font(SERIF_B, 17), w, leading=20)
+    draw_para(d, x, y + 148, body, font(SANS, 12), w, leading=14)
+    d.text((x, y + 192), "(%s)" % source, font=font(SANS, 10), fill=MUTED)
     return y + 200
 
 
 def draw_feature(d, x, y, w, story):
     num, place, field, head, body, source, art = story
-    ART[art](d, x, y, w, 40)
+    ART[art](d, x, y, w, 50)
     tag = "%02d \u2022 %s \u2022 %s" % (num, place, field)
-    d.text((x, y + 45), tag, font=font(SANS_B, 10), fill=RED)
-    draw_para(d, x, y + 58, head, font(SANS_B, 13), w, leading=16)
-    draw_para(d, x, y + 92, body, font(SANS, 11), w, leading=13)
-    d.text((x, y + 133), "(%s)" % source, font=font(SANS, 9), fill=MUTED)
+    d.text((x, y + 55), tag, font=font(SANS_B, 10), fill=RED)
+    draw_para(d, x, y + 68, head, font(SANS_B, 13), w, leading=16)
+    draw_para(d, x, y + 102, body, font(SANS, 11), w, leading=13)
+    d.text((x, y + 141), "(%s)" % source, font=font(SANS, 9), fill=MUTED)
     return y + 148
 
 
